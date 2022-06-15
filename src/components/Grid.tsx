@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, useEffect, useState } from "react";
 import axios from "axios";
 import ReactPaginate from "react-paginate";
 import ImageCard from "./ImageCard";
@@ -6,9 +6,11 @@ import Loading from "./Loading";
 import styled from "styled-components";
 import "../styles/Grid.css";
 
-import { Collection } from "../types/types";
+import { ApplicationState, Collection } from "../types/types";
 import SelectCollectionType from "./SelectCollectionType";
 import SearchBar from "./SearchBar";
+import { connect } from "react-redux";
+import { getCollectionAction } from "../store/actionCreators";
 
 const GridList = styled.div`
   display: flex;
@@ -35,14 +37,22 @@ type CollectionType = {
   };
 };
 
-const Grid = () => {
-  const [isLoading, setLoading] = useState(true);
-  const [collectionType, setCollectionType] = useState("all");
-  const [collections, setCollections] = useState<any>(null);
-  const [searchNameValue, setSearchNameValue] = useState("");
+interface GridProps {
+  onGetCollection: (
+    collectionType: string,
+    offset: number,
+    endOffset: number
+  ) => void;
+}
 
-  const [pageCount, setPageCount] = useState(0);
+const Grid = (props: GridProps & ApplicationState) => {
+  const [collectionType, setCollectionType] = useState("all");
+  const [searchNameValue, setSearchNameValue] = useState("");
   const [offset, setOffset] = useState(0);
+
+  const { collectionData, nftData, loading } = props;
+  const count = collectionData.result.count;
+  const endOffset = offset + itemsPerPage;
 
   const handlePageClick = (event: any) => {
     const newOffset = event.selected * itemsPerPage;
@@ -50,48 +60,26 @@ const Grid = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-    fetchData();
+    props.onGetCollection(collectionType, offset, endOffset);
   }, [offset, itemsPerPage]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchData();
+    props.onGetCollection(collectionType, offset, endOffset);
   }, [collectionType]);
-
-  const fetchData = async () => {
-    let proxyUrl = `http://localhost:8010/proxy/api/nft/collections_page?collectionType=${collectionType}&startInclusive=${offset}&endExclusive=${
-      offset + itemsPerPage
-    }`;
-    try {
-      const response = await axios.get(proxyUrl);
-      const collection = response.data;
-      setPageCount(
-        Math.ceil(
-          (collection.result.count / itemsPerPage) % collection.result.count
-        )
-      );
-      setCollections(collection);
-    } catch (err) {
-      setCollections(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const renderList = () => {
     return (
       <>
-        {collections &&
-          collections.result.collections
-            // .slice(offset, offset + itemsPerPage)
-            .sort((a: any, b: any) => {
-              let aName = "";
-              let bName = "";
-              aName = a.collectionDict?.name.toLowerCase();
-              bName = b.collectionDict?.name.toLowerCase();
-              return aName > bName ? 1 : -1;
-            })
+        {collectionData &&
+          collectionData.result.collections
+            //TODO immutable state
+            // .sort((a: any, b: any) => {
+            //   let aName = "";
+            //   let bName = "";
+            //   aName = a.collectionDict?.name.toLowerCase();
+            //   bName = b.collectionDict?.name.toLowerCase();
+            //   return aName > bName ? 1 : -1;
+            // })
             .filter((col: Collection) =>
               col.collectionDict?.name.match(new RegExp(searchNameValue, "i"))
             )
@@ -112,7 +100,7 @@ const Grid = () => {
         setCollectionType={setCollectionType}
         collectionType={collectionType}
       />
-      {isLoading ? (
+      {count === 0 ? (
         <Loading loading={collectionType} />
       ) : (
         <>
@@ -120,16 +108,18 @@ const Grid = () => {
             searchNameValue={searchNameValue}
             setSearchNameValue={setSearchNameValue}
           />
-          <Results>
-            <p>{collections && collections.result.count} results found</p>
-          </Results>
+          {collectionData && (
+            <Results>
+              <p>{collectionData.result.count} total results found</p>
+            </Results>
+          )}
           <GridList>{renderList()}</GridList>
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"
             onPageChange={handlePageClick}
             pageRangeDisplayed={4}
-            pageCount={pageCount}
+            pageCount={Math.ceil((count / itemsPerPage) % count)}
             previousLabel="< previous"
             containerClassName={"container"}
             previousLinkClassName={"page"}
@@ -145,4 +135,23 @@ const Grid = () => {
   );
 };
 
-export default Grid;
+const mapStateToProps = (state: ApplicationState) => {
+  return {
+    collectionData: state.collectionData,
+    nftData: state.nftData,
+    loading: state.loading,
+  };
+};
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    onGetCollection: (
+      collectionType: string,
+      offset: number,
+      endOffset: number
+    ) => {
+      dispatch(getCollectionAction(collectionType, offset, endOffset));
+    },
+  };
+};
+export default connect(mapStateToProps, mapDispatchToProps)(Grid);

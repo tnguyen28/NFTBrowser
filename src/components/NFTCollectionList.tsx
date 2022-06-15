@@ -86,7 +86,7 @@ const NFTCollectionList = (props: ModalProps) => {
   };
 
   useEffect(() => {
-    fetchData();
+    //fetchData();
   }, [offset, itemsPerPage]);
 
   const { showModal, collectionName } = props;
@@ -110,7 +110,7 @@ const NFTCollectionList = (props: ModalProps) => {
 
   useEffect(() => {
     if (nfts && showModal) {
-      fetchData();
+     // fetchData();
     }
 
     if (showModal) {
