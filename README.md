@@ -11,6 +11,7 @@
      - load handling, spinners etc
      - redux is very powerful, learning process to really dive deep and take advantage while also maintaining decent typescript practices
      - react router, to query pages/loading 
+     - Search by name feature only searches on current loaded page, all the more reason to migrate
 # KNOWN BUGS
 - Pagination steps state change/redux interferring with each other
     - potential fix:

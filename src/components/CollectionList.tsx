@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import ImageCard from "./ImageCard";
-import Loading from "./Loading";
+import Loading from "./modules/Loading";
 import styled from "styled-components";
-import "../styles/Grid.css";
+import "../styles/CollectionList.css";
 
 import { ApplicationState, Collection } from "../types/types";
-import SelectCollectionType from "./SelectCollectionType";
-import SearchBar from "./SearchBar";
+import SelectCollectionType from "./modules/SelectCollectionType";
+import SearchBar from "./modules/SearchBar";
 import { connect } from "react-redux";
 import { getCollectionAction } from "../store/actionCreators";
 
-const GridList = styled.div`
+const CollectionListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -36,7 +36,7 @@ type CollectionType = {
   };
 };
 
-interface GridProps {
+interface CollectionListProps {
   onGetCollection: (
     collectionType: string,
     offset: number,
@@ -44,7 +44,7 @@ interface GridProps {
   ) => void;
 }
 
-const Grid = (props: GridProps & ApplicationState) => {
+const CollectionList = (props: CollectionListProps & ApplicationState) => {
   const [collectionType, setCollectionType] = useState("all");
   const [searchNameValue, setSearchNameValue] = useState("");
 
@@ -116,7 +116,7 @@ const Grid = (props: GridProps & ApplicationState) => {
               <p>{collectionData.result.count} total results found</p>
             </Results>
           )}
-          <GridList>{renderList()}</GridList>
+          <CollectionListContainer>{renderList()}</CollectionListContainer>
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"
@@ -158,4 +158,4 @@ const mapDispatchToProps = (dispatch: any) => {
     },
   };
 };
-export default connect(mapStateToProps, mapDispatchToProps)(Grid);
+export default connect(mapStateToProps, mapDispatchToProps)(CollectionList);

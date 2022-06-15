@@ -4,9 +4,9 @@ import { connect } from "react-redux";
 import styled from "styled-components";
 import { getNFTAction } from "../store/actionCreators";
 
-import "../styles/Grid.css";
+import "../styles/CollectionList.css";
 import { ApplicationState, NFT } from "../types/types";
-import SearchBar from "./SearchBar";
+import SearchBar from "./modules/SearchBar";
 
 const ModalBox = styled.div`
   background-color: #06283d;

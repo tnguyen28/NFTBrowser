@@ -20,7 +20,6 @@ export const getNFTAction = (
 export const fetchCollectionRequest =
   (collectionType: string, offset: number, endOffset: number) =>
   async (dispatch: any) => {
-    console.log('fetching:' + offset + "," + endOffset)
     dispatch({
       type: actionTypes.IS_LOADING,
       loading: true,

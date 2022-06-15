@@ -1,9 +1,8 @@
-import React from "react";
 import "./App.css";
-import Grid from "./components/Grid";
 import styled from "styled-components";
 
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import CollectionList from "./components/CollectionList";
 
 const Header = styled.h1`
   text-align: center;
@@ -11,14 +10,14 @@ const Header = styled.h1`
 `;
 
 const Container = styled.div`
-margin: 0 30px 0 30px
-`
+  margin: 0 30px 0 30px;
+`;
 
 const App = () => {
   return (
     <Container>
       <Header>NFT BROWSER</Header>
-      <Grid />
+      <CollectionList />
     </Container>
   );
 };
