@@ -9,17 +9,22 @@ export const getCollectionAction = (
   return fetchCollectionRequest(collectionType, offset, endOffset);
 };
 
-export function getNFT(
+export const getNFTAction = (
   collectionName: string,
   offset: number,
   endOffset: number
-) {
+) => {
   return fetchNFTRequest(collectionName, offset, endOffset);
-}
+};
 
 export const fetchCollectionRequest =
   (collectionType: string, offset: number, endOffset: number) =>
   async (dispatch: any) => {
+    console.log('fetching:' + offset + "," + endOffset)
+    dispatch({
+      type: actionTypes.IS_LOADING,
+      loading: true,
+    });
     const url = `http://localhost:8010/proxy/api/nft/collections_page?collectionType=${collectionType}&startInclusive=${offset}&endExclusive=${endOffset}`;
     await axios
       .get(url)
@@ -46,7 +51,7 @@ export const fetchNFTRequest =
       .then((data) => {
         return dispatch({
           type: actionTypes.GET_NFT,
-          collectionData: data,
+          nftData: data,
         });
       });
   };

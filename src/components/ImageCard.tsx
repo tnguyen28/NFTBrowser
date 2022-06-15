@@ -3,11 +3,6 @@ import styled from "styled-components";
 import { Collection } from "../types/types";
 import NFTCollectionList from "./NFTCollectionList";
 
-export interface ImageCardProps extends Partial<Collection> {
-  avatarImageUrl: string | undefined;
-  name: string | undefined;
-}
-
 const CardTitle = styled.div`
   text-align: center;
 `;
@@ -33,6 +28,11 @@ shadowOpacity: 0.25;
 shadowRadius: 3.84;
 elevation: 5;
 `;
+
+export interface ImageCardProps extends Partial<Collection> {
+  avatarImageUrl: string | undefined;
+  name: string;
+}
 
 const ImageCard = (props: ImageCardProps) => {
   const [showModal, setShowModal] = useState(false);

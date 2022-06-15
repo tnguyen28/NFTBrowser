@@ -1,17 +1,12 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
+import { connect } from "react-redux";
 import styled from "styled-components";
+import { getNFTAction } from "../store/actionCreators";
 
 import "../styles/Grid.css";
-import { NFT } from "../types/types";
+import { ApplicationState, NFT } from "../types/types";
 import SearchBar from "./SearchBar";
-
-interface ModalProps {
-  showModal: boolean;
-  collectionName: string | undefined;
-  handleClose: () => void;
-}
 
 const ModalBox = styled.div`
   background-color: #06283d;
@@ -69,16 +64,22 @@ const NoResults = styled.div`
   font-weight: bold;
 `;
 
+interface ModalProps {
+  showModal: boolean;
+  collectionName: string;
+  handleClose: () => void;
+  onGetNFT: (collectionType: string, offset: number, endOffset: number) => void;
+}
+
 const itemsPerPage = 5;
 
-const NFTCollectionList = (props: ModalProps) => {
-  const [loading, setLoading] = useState(true);
-  //TODO handle any type
-  const [nfts, setNfts] = useState<any>(null);
-  const [nftTotal, setNftTotal] = useState(0);
-  const [pageCount, setPageCount] = useState(0);
+const NFTCollectionList = (props: ModalProps & ApplicationState) => {
   const [offset, setOffset] = useState(0);
   const [searchNameValue, setSearchNameValue] = useState("");
+
+  const { nftData, showModal, collectionName } = props;
+  const total = nftData?.result.total;
+  const endOffset = offset + itemsPerPage;
 
   const handlePageClick = (event: any) => {
     const newOffset = event.selected * itemsPerPage;
@@ -86,34 +87,14 @@ const NFTCollectionList = (props: ModalProps) => {
   };
 
   useEffect(() => {
-    //fetchData();
+    if (showModal) {
+      props.onGetNFT(collectionName, offset, endOffset);
+    }
   }, [offset, itemsPerPage]);
 
-  const { showModal, collectionName } = props;
-
-  const fetchData = async () => {
-    let proxyUrl = `http://localhost:8010/proxy/api/nft/nfts_filtered?nft_filter_string={"collection":"${collectionName}"}&startInclusive=${offset}&endExclusive=${
-      offset + itemsPerPage
-    }`;
-    try {
-      const response = await axios.get(proxyUrl);
-      const result = response.data.result;
-      setNfts(result.nfts);
-      setNftTotal(result.total);
-      setPageCount(Math.ceil((result.total / itemsPerPage) % result.total));
-    } catch (err) {
-      setNfts(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (nfts && showModal) {
-     // fetchData();
-    }
-
     if (showModal) {
+      props.onGetNFT(collectionName, offset, endOffset);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -128,72 +109,72 @@ const NFTCollectionList = (props: ModalProps) => {
       />
       <CloseModalButton onClick={() => props.handleClose()}>X</CloseModalButton>
       <ModalContent>
-        {loading ? (
-          <div>nfts are loading...</div>
-        ) : (
-          <NFTList>
-            {nftTotal > 0 ? (
-              nfts
-                .sort((a: any, b: any) => {
-                  let aName = "";
-                  let bName = "";
-                  aName = a.name.toLowerCase();
-                  bName = b.name.toLowerCase();
-                  return aName > bName ? 1 : -1;
-                })
-                .filter((nft: NFT) =>
-                  nft.name.match(new RegExp(searchNameValue, "i"))
-                )
-                .map((nft: any) => {
-                  const {
-                    imageUrl,
-                    name,
-                    offerPrice,
-                    quoteCurrency,
-                    auction,
-                    id,
-                  } = nft;
-                  let bestBid = auction ? auction.bestBid : "N/A";
-                  let bidTime = auction ? auction.bidTime : "N/A";
+        <NFTList>
+          {nftData && total > 0 ? (
+            nftData.result.nfts
+              // .sort((a: any, b: any) => {
+              //   let aName = "";
+              //   let bName = "";
+              //   aName = a.name.toLowerCase();
+              //   bName = b.name.toLowerCase();
+              //   return aName > bName ? 1 : -1;
+              // })
+              .filter((nft: NFT) =>
+                nft.name.match(new RegExp(searchNameValue, "i"))
+              )
+              .map((nft: any) => {
+                const {
+                  imageUrl,
+                  name,
+                  offerPrice,
+                  quoteCurrency,
+                  auction,
+                  id,
+                } = nft;
+                let bestBid = auction ? auction.bestBid : "N/A";
+                let bidTime = auction ? auction.bidTime : "N/A";
 
-                  return (
-                    <NFTItem key={id}>
-                      <img
-                        src={imageUrl !== null ? imageUrl : ""}
-                        width="250px"
-                        height="250px"
-                      />
-                      <NFTItemDescription>
-                        <h2>{name}</h2>
-                        <NFTListing>
-                          <h3>Price: </h3>
-                          <p>
-                            {offerPrice} {quoteCurrency}
-                          </p>
-                        </NFTListing>
-                        <NFTListing>
-                          <h3>Best Bid: </h3>
-                          <p>{bestBid}</p>
-                        </NFTListing>
-                        <NFTListing>
-                          <h3>Bid Time: </h3>
-                          <p>{bidTime}</p>
-                        </NFTListing>
-                      </NFTItemDescription>
-                    </NFTItem>
-                  );
-                })
-            ) : (
-              <NoResults>
-                <p>No Results...</p>
-              </NoResults>
-            )}
+                return (
+                  <NFTItem key={id}>
+                    <img
+                      src={imageUrl !== null ? imageUrl : ""}
+                      width="250px"
+                      height="250px"
+                    />
+                    <NFTItemDescription>
+                      <h2>{name}</h2>
+                      <NFTListing>
+                        <h3>Price: </h3>
+                        <p>
+                          {offerPrice
+                            ? `${offerPrice} ${quoteCurrency}`
+                            : `N/A`}
+                        </p>
+                      </NFTListing>
+                      <NFTListing>
+                        <h3>Best Bid: </h3>
+                        <p>{bestBid}</p>
+                      </NFTListing>
+                      <NFTListing>
+                        <h3>Bid Time: </h3>
+                        <p>{bidTime}</p>
+                      </NFTListing>
+                    </NFTItemDescription>
+                  </NFTItem>
+                );
+              })
+          ) : (
+            <NoResults>
+              <p>No Results...</p>
+            </NoResults>
+          )}
+          {total ? (
             <ReactPaginate
               breakLabel="..."
               nextLabel="next >"
               onPageChange={handlePageClick}
               pageRangeDisplayed={4}
-              pageCount={pageCount}
+              pageCount={Math.ceil((total / itemsPerPage) % total)}
               previousLabel="< previous"
               containerClassName={"container"}
               previousLinkClassName={"page"}
@@ -203,11 +184,27 @@ const NFTCollectionList = (props: ModalProps) => {
               disabledClassName={"disabled"}
               activeClassName={"active"}
             />
-          </NFTList>
-        )}
+          ) : (
+            <></>
+          )}
+        </NFTList>
       </ModalContent>
     </ModalBox>
   ) : null;
 };
 
-export default NFTCollectionList;
+const mapStateToProps = (state: ApplicationState) => {
+  return {
+    collectionData: state.collectionData,
+    nftData: state.nftData,
+  };
+};
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    onGetNFT: (collectionName: string, offset: number, endOffset: number) => {
+      dispatch(getNFTAction(collectionName, offset, endOffset));
+    },
+  };
+};
+export default connect(mapStateToProps, mapDispatchToProps)(NFTCollectionList);

@@ -1,5 +1,4 @@
-import React, { Dispatch, useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import ImageCard from "./ImageCard";
 import Loading from "./Loading";
@@ -48,20 +47,24 @@ interface GridProps {
 const Grid = (props: GridProps & ApplicationState) => {
   const [collectionType, setCollectionType] = useState("all");
   const [searchNameValue, setSearchNameValue] = useState("");
-  const [offset, setOffset] = useState(0);
 
-  const { collectionData, nftData, loading } = props;
+  //pagination
+  const [offset, setOffset] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const { collectionData, loading } = props;
   const count = collectionData.result.count;
   const endOffset = offset + itemsPerPage;
 
   const handlePageClick = (event: any) => {
+    setCurrentPage(event.selected);
     const newOffset = event.selected * itemsPerPage;
     setOffset(newOffset);
   };
 
   useEffect(() => {
     props.onGetCollection(collectionType, offset, endOffset);
-  }, [offset, itemsPerPage]);
+  }, [offset]);
 
   useEffect(() => {
     props.onGetCollection(collectionType, offset, endOffset);
@@ -100,7 +103,7 @@ const Grid = (props: GridProps & ApplicationState) => {
         setCollectionType={setCollectionType}
         collectionType={collectionType}
       />
-      {count === 0 ? (
+      {loading ? (
         <Loading loading={collectionType} />
       ) : (
         <>
@@ -119,7 +122,8 @@ const Grid = (props: GridProps & ApplicationState) => {
             nextLabel="next >"
             onPageChange={handlePageClick}
             pageRangeDisplayed={4}
-            pageCount={Math.ceil((count / itemsPerPage) % count)}
+            pageCount={Math.ceil(count / itemsPerPage)}
+            forcePage={currentPage}
             previousLabel="< previous"
             containerClassName={"container"}
             previousLinkClassName={"page"}
@@ -137,9 +141,9 @@ const Grid = (props: GridProps & ApplicationState) => {
 
 const mapStateToProps = (state: ApplicationState) => {
   return {
+    loading: state.loading,
     collectionData: state.collectionData,
     nftData: state.nftData,
-    loading: state.loading,
   };
 };
 

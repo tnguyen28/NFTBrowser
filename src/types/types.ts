@@ -16,7 +16,7 @@ export interface NFTData {
 }
 
 export interface ApplicationState {
-  loading: Boolean;
+  loading?: boolean;
   nftData: NFTData;
   collectionData: CollectionData;
 }
